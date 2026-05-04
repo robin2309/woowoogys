@@ -1,0 +1,20 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "extract": "tsx --env-file=.env index.ts",
+    "index": "tsx search.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.33.2",
+  "dependencies": {
+    "@google/genai": "^1.51.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
+  }
+}
