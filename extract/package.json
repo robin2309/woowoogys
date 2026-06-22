@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "extract": "tsx --env-file=.env index.ts",
-    "index": "tsx search.ts"
+    "search-index": "tsx search.ts",
+    "ingredients": "tsx --env-file=.env ingredients.ts"
   },
   "keywords": [],
   "author": "",

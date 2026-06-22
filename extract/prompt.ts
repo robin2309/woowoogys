@@ -18,3 +18,24 @@ Follow these rules:
 
 Output strictly the Markdown text starting immediately with the Heading 1 summary, without any conversational filler or introductions.
 `
+
+export const EXTRACT_INGREDIENTS = `
+Agis comme un extracteur de données structurées. Ton but est d'analyser le texte Markdown d'une recette de cuisine fourni ci-dessous et d'en extraire exclusivement les ingrédients.
+
+Règles strictes à respecter :
+
+Va directement dans la section Ingrédients.
+
+Ignore les sous-titres de catégories (comme LA VIANDE, LA SAUCE, etc.).
+
+Supprime toutes les quantités, les unités de mesure, les indications de préparation ou les renvois de page (ex: "800 g de", "10 g de", "50 cl de", "1 à 2 gousses d'", "Quelques feuilles de", "(p. 50)").
+
+Garde uniquement le nom brut de l'ingrédient au singulier ou au pluriel (ex: "paleron de bœuf", "beurre", "huile d'olive").
+
+Formate le résultat final sous la forme d'une unique chaîne de caractères, avec chaque ingrédient séparé par une virgule et un espace (, ).
+
+Ne génère absolument aucun autre texte. Pas de bonjour, pas d'explication, pas de point final. Seulement la liste séparée par des virgules.
+
+Texte Markdown à analyser :
+{{markdownRecipe}}
+`

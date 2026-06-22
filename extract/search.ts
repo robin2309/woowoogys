@@ -2,16 +2,25 @@ import { readdir, readFile, writeFile } from "fs/promises";
 import { join } from "path";
 
 const OUTPUT_DIR = join(__dirname, "output");
-const INDEX_PATH = join(__dirname, "index.json");
+const INDEX_PATH = join(__dirname, "search-index.json");
+
+const STOP_WORDS = new Set([
+  "de", "du", "des", "le", "la", "les", "un", "une",
+  "et", "au", "aux", "en", "a", "l", "d",
+]);
 
 /**
- * Builds a word -> filename[] index from each markdown file's first H1.
+ * Builds a word -> {fileName, title}[] index from each markdown file's first H1.
  *
- * Example index:
+ * 1. Extract the first # heading from each .md file
+ * 2. Normalize: lowercase + strip diacritics ("Bœuf" -> "boeuf")
+ * 3. Tokenize on whitespace/punctuation, drop special chars
+ * 4. Filter stop-words (de, le, la, des, un, et, aux...)
+ * 5. Map each word to { fileName, title }
+ *
+ * Example:
  * {
- *   "babka": ["babka-choco-noisette.md"],
- *   "choco": ["babka-choco-noisette.md"],
- *   "carpaccio": ["carpaccio-de-buf.md", "carpaccio-de-courgettes.md", "carpaccio-de-daurade.md"],
+ *   "carpaccio": [{ "fileName": "carpaccio-de-buf.md", "title": "Carpaccio de bœuf" }],
  *   ...
  * }
  */
@@ -21,32 +30,42 @@ function extractH1(markdown: string): string | null {
   return match ? match[1].trim() : null;
 }
 
-function tokenize(heading: string): string[] {
-  return heading
+function normalize(text: string): string {
+  return text
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .split(/\s+/)
+    .toLowerCase();
+}
+
+function tokenize(heading: string): string[] {
+  return normalize(heading)
+    .split(/[\s\p{P}]+/u)
     .map((w) => w.replace(/[^a-z0-9]/g, ""))
-    .filter((w) => w.length > 0);
+    .filter((w) => w.length > 0 && !STOP_WORDS.has(w));
+}
+
+interface IndexEntry {
+  fileName: string;
+  title: string;
 }
 
 async function main() {
   const files = (await readdir(OUTPUT_DIR)).filter((f) => f.endsWith(".md"));
-  const index: Record<string, string[]> = {};
+  const index: Record<string, IndexEntry[]> = {};
 
   for (const file of files) {
     const content = await readFile(join(OUTPUT_DIR, file), "utf-8");
-    const heading = extractH1(content);
-    if (!heading) {
+    const title = extractH1(content);
+    if (!title) {
       console.warn(`No H1 found in ${file}, skipping`);
       continue;
     }
 
-    const words = tokenize(heading);
+    const entry: IndexEntry = { fileName: file, title };
+    const words = tokenize(title);
     for (const word of words) {
       if (!index[word]) index[word] = [];
-      if (!index[word].includes(file)) index[word].push(file);
+      index[word].push(entry);
     }
   }
 
